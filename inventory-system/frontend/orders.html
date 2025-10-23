@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/jpeg" href="logo.jpeg">
+<title>Multi-Step Orders</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Roboto', sans-serif; }
+body {
+    background: linear-gradient(135deg, #6a11cb, #2575fc);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+.container {
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.3);
+    padding: 30px;
+    width: 100%;
+    max-width: 600px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+/* Steps styling */
+.step {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    transition: all 0.5s ease;
+}
+.step.active { display: flex; animation: fadeIn 0.5s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(20px);} to { opacity:1; transform: translateY(0);} }
+
+input, select, button {
+    margin: 10px 0;
+    padding: 10px;
+    width: 80%;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+}
+
+button { cursor: pointer; font-weight: bold; transition: 0.3s; }
+button:hover { background: #1a5bd8; color: #fff; }
+
+#estimatedDelivery {
+    margin-top: 20px;
+    font-size: 18px;
+    font-weight: bold;
+    color: #2575fc;
+    opacity: 0;
+    animation: blast 1s forwards;
+}
+
+@keyframes blast {
+    0% { opacity: 0; transform: scale(0.5);}
+    50% { opacity: 1; transform: scale(1.2);}
+    100% { opacity: 1; transform: scale(1);}
+}
+
+.track-steps {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+}
+.track-step {
+    padding: 5px 12px;
+    border-radius: 20px;
+    background: #ccc;
+    color: #fff;
+    font-weight: bold;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+.track-step.active { background: #2575fc; }
+
+/* Tick mark for confirmation */
+.tick-mark {
+    font-size: 60px;
+    color: green;
+    margin-bottom: 10px;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+    <!-- Step 1: Proceed to Buy -->
+    <div class="step active" id="step1">
+        <h2>Step 1: Ready to Buy?</h2>
+        <button onclick="nextStep(1)">Proceed</button>
+    </div>
+
+    <!-- Step 2: Payment Method -->
+    <div class="step" id="step2">
+        <h2>Step 2: Select Payment Method</h2>
+        <select id="paymentMethod">
+            <option value="">Choose Payment</option>
+            <option value="Credit Card">Credit Card</option>
+            <option value="UPI">UPI</option>
+            <option value="Cash on Delivery">Cash on Delivery</option>
+        </select>
+        <button onclick="nextStep(2)">Continue</button>
+    </div>
+
+    <!-- Step 3: Order Form -->
+    <div class="step" id="step3">
+        <h2>Step 3: Enter Order Details</h2>
+        <input type="text" id="orderId" placeholder="Order ID" />
+        <input type="text" id="customerName" placeholder="Customer Name" />
+        <select id="product">
+            <option value="">Select Product</option>
+        </select>
+        <input type="number" id="quantity" placeholder="Quantity" />
+        <button onclick="submitOrder()">Add Order</button>
+    </div>
+
+    <!-- Step 4: Confirmation -->
+    <div class="step" id="step4">
+        <div class="tick-mark">✔</div>
+        <h2>Successfully Order Placed!</h2>
+        <p id="thankYouMsg"></p>
+        <p id="estimatedDelivery"></p>
+        <button onclick="window.location.href='dashboard.html'">Back to Dashboard</button>
+    </div>
+</div>
+
+<script>
+// Products
+let products = JSON.parse(localStorage.getItem('products')) || [
+    { name: "Product A", image: "https://via.placeholder.com/100?text=A" },
+    { name: "Product B", image: "https://via.placeholder.com/100?text=B" },
+    { name: "Product C", image: "https://via.placeholder.com/100?text=C" }
+];
+
+// Populate product select
+const productSelect = document.getElementById('product');
+products.forEach(prod => {
+    const option = document.createElement('option');
+    option.value = prod.name;
+    option.textContent = prod.name;
+    productSelect.appendChild(option);
+});
+
+// Step navigation
+function nextStep(current) {
+    document.querySelectorAll('.step').forEach(el => el.classList.remove('active'));
+    document.getElementById(`step${current + 1}`).classList.add('active');
+}
+
+// Submit order and store in MySQL
+async function submitOrder() {
+    const orderId = document.getElementById('orderId').value.trim();
+    const customerName = document.getElementById('customerName').value.trim();
+    const product = document.getElementById('product').value.trim();
+    const quantity = document.getElementById('quantity').value.trim();
+    const paymentMethod = document.getElementById('paymentMethod').value.trim();
+
+    if (!orderId || !customerName || !product || !quantity || !paymentMethod) {
+        alert("All fields are required!");
+        return;
+    }
+
+    try {
+        // ✅ Send order data to backend (Node.js + MySQL)
+        const response = await fetch("http://localhost:5000/api/orders", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ orderId, customerName, product, quantity })
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.error || "Failed to add order.");
+        }
+
+        // ✅ Step 4: Show confirmation
+        nextStep(3);
+
+        // Estimated Delivery
+        const estDelivery = new Date();
+        estDelivery.setDate(estDelivery.getDate() + 5 + Math.floor(Math.random() * 3));
+        const estDateStr = estDelivery.toLocaleDateString();
+
+        document.getElementById('thankYouMsg').textContent =
+            `Thank you, ${customerName}! Your order for "${product}" has been placed.`;
+
+        const deliveryDiv = document.getElementById('estimatedDelivery');
+        deliveryDiv.textContent = `Estimated Delivery: ${estDateStr}`;
+        deliveryDiv.style.opacity = 0;
+        setTimeout(() => deliveryDiv.style.opacity = 1, 200);
+
+        // Clear form
+        document.getElementById('orderId').value = '';
+        document.getElementById('customerName').value = '';
+        document.getElementById('product').value = '';
+        document.getElementById('quantity').value = '';
+
+        console.log("✅ Order inserted into database:", result.message);
+    } catch (error) {
+        console.error("❌ Error:", error);
+        alert("Failed to submit order. Please check the backend connection.");
+    }
+}
+</script>
+
+</body>
+</html>

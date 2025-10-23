@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/jpeg" href="logo.jpeg">
+<title>Orders Analytics Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Roboto', sans-serif; }
+body { background: #f0f2f5; padding: 20px; }
+.container { max-width: 1200px; margin: 0 auto; }
+h1 { text-align: center; margin-bottom: 30px; color: #333; }
+
+.cards { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; margin-bottom: 40px; }
+.card { background: #fff; padding: 20px; flex: 1 1 200px; border-radius: 15px; box-shadow: 0 8px 20px rgba(0,0,0,0.1); text-align: center; }
+.card h2 { font-size: 36px; color: #2575fc; margin-bottom: 10px; }
+.card p { font-size: 16px; color: #555; }
+
+/* Charts */
+.chart-container { display: flex; flex-wrap: wrap; gap: 40px; justify-content: center; }
+.chart-box { background: #fff; padding: 20px; border-radius: 15px; box-shadow: 0 8px 20px rgba(0,0,0,0.1); flex: 1 1 400px; text-align: center; }
+canvas { max-width: 100%; }
+
+/* Table */
+table { width: 100%; border-collapse: collapse; margin-top: 40px; background: #fff; border-radius: 10px; overflow: hidden; }
+table th, table td { padding: 12px 15px; text-align: center; border-bottom: 1px solid #ddd; }
+table th { background: #2575fc; color: #fff; }
+
+/* Responsive */
+@media(max-width: 768px){ .cards, .chart-container { flex-direction: column; align-items: center; } }
+</style>
+</head>
+<body>
+<div class="container">
+    <h1>Orders Analytics Dashboard</h1>
+
+    <!-- Summary Cards -->
+    <div class="cards">
+        <div class="card">
+            <h2 id="totalOrders">0</h2>
+            <p>Total Orders</p>
+        </div>
+        <div class="card">
+            <h2 id="deliveredOrders">0</h2>
+            <p>Orders Delivered</p>
+        </div>
+        <div class="card">
+            <h2 id="pendingOrders">0</h2>
+            <p>Orders Pending</p>
+        </div>
+        <div class="card">
+            <h2 id="shippedOrders">0</h2>
+            <p>Orders Shipped</p>
+        </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="chart-container">
+        <div class="chart-box">
+            <h3>Orders by Product</h3>
+            <canvas id="productChart" width="400" height="300"></canvas>
+        </div>
+        <div class="chart-box">
+            <h3>Orders by Status</h3>
+            <canvas id="statusChart" width="400" height="300"></canvas>
+        </div>
+    </div>
+
+    <!-- Orders Table -->
+    <h3 style="margin-top:40px;">Recent Orders</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Order ID</th>
+                <th>Customer</th>
+                <th>Product</th>
+                <th>Quantity</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody id="ordersTableBody">
+        </tbody>
+    </table>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+let productChart, statusChart;
+
+async function fetchOrders() {
+    try {
+        const res = await fetch('/api/orders'); // Your backend endpoint
+        const orders = await res.json();
+
+        // Update cards
+        const total = orders.length;
+        const delivered = orders.filter(o => o.currentStep === 3).length;
+        const shipped = orders.filter(o => o.currentStep === 2).length;
+        const pending = orders.filter(o => o.currentStep < 2).length;
+
+        document.getElementById('totalOrders').textContent = total;
+        document.getElementById('deliveredOrders').textContent = delivered;
+        document.getElementById('shippedOrders').textContent = shipped;
+        document.getElementById('pendingOrders').textContent = pending;
+
+        // Orders by product
+        const productCounts = {};
+        orders.forEach(o => {
+            productCounts[o.product] = (productCounts[o.product] || 0) + 1;
+        });
+        const productLabels = Object.keys(productCounts);
+        const productData = Object.values(productCounts);
+
+        // Orders by status
+        const statusCounts = { Delivered: 0, Shipped: 0, Pending: 0 };
+        orders.forEach(o => {
+            if(o.currentStep === 3) statusCounts.Delivered++;
+            else if(o.currentStep === 2) statusCounts.Shipped++;
+            else statusCounts.Pending++;
+        });
+
+        const statusLabels = Object.keys(statusCounts);
+        const statusData = Object.values(statusCounts);
+
+        // Update charts
+        if(productChart) productChart.destroy();
+        productChart = new Chart(document.getElementById('productChart').getContext('2d'), {
+            type: 'bar',
+            data: { labels: productLabels, datasets: [{ label: 'Orders', data: productData, backgroundColor: ['#2575fc', '#6a11cb', '#ff6a00'] }] },
+            options: { responsive: true }
+        });
+
+        if(statusChart) statusChart.destroy();
+        statusChart = new Chart(document.getElementById('statusChart').getContext('2d'), {
+            type: 'doughnut',
+            data: { labels: statusLabels, datasets: [{ data: statusData, backgroundColor: ['#28a745', '#ffc107', '#dc3545'] }] },
+            options: { responsive: true }
+        });
+
+        // Update table
+        const tbody = document.getElementById('ordersTableBody');
+        tbody.innerHTML = '';
+        orders.forEach((o, i) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td>${i+1}</td>
+                            <td>${o.orderId}</td>
+                            <td>${o.customerName}</td>
+                            <td>${o.product}</td>
+                            <td>${o.quantity}</td>
+                            <td>${['Pending','Shipped','Out for Delivery','Delivered'][o.currentStep]}</td>`;
+            tbody.appendChild(tr);
+        });
+
+    } catch(err){
+        console.error(err);
+    }
+}
+
+// Initial load
+fetchOrders();
+
+// Optional: refresh every 10 seconds
+setInterval(fetchOrders, 10000);
+</script>
+</body>
+</html>

@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/jpeg" href="logo.jpeg">
+<title>Dashboard</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+<!-- Font Awesome CDN for social media icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-papf1f5ZXG+nJpBz0e1m6zV3x5F7sfs1EX8T7FjE3LZBvfR7p6cROyKcxM9jUXc+g6e3u9H9MeB4r2E3kF1vQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<style>
+/* Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Roboto', sans-serif;
+}
+
+/* Body styling */
+body {
+    background: linear-gradient(135deg, #6a11cb, #2575fc);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+/* Header / Navbar */
+header {
+    width: 100%;
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(10px);
+    padding: 15px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+header h1 {
+    color: #fff;
+    font-size: 24px;
+}
+
+header nav button {
+    margin-left: 15px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    background: #fc5c7d;
+    border: none;
+    cursor: pointer;
+    color: #fff;
+}
+
+header nav button:hover {
+    background: #e84160;
+    transform: translateY(-2px);
+}
+
+/* Main Dashboard */
+main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px;
+}
+
+/* Welcome card */
+.welcome-card {
+    background: #fff;
+    padding: 30px 25px;
+    border-radius: 20px;
+    box-shadow: 0 12px 35px rgba(0,0,0,0.3);
+    text-align: center;
+    width: 100%;
+    max-width: 700px;
+    margin-bottom: 40px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.welcome-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+}
+
+.welcome-card h2 {
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.welcome-card p {
+    color: #555;
+    font-size: 18px;
+}
+
+/* Feature cards container */
+.features {
+    display: flex;
+    gap: 30px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+/* Feature card */
+.feature-card {
+    background: #fff;
+    width: 250px;
+    height: 180px;
+    border-radius: 20px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.4s ease, box-shadow 0.4s ease, background 0.4s ease;
+    cursor: pointer;
+    text-align: center;
+    padding: 15px;
+}
+
+.feature-card:hover {
+    transform: translateY(-10px) rotateY(5deg);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+    background: linear-gradient(135deg, #6a11cb, #2575fc);
+    color: #fff;
+}
+
+.feature-card h3 {
+    font-size: 20px;
+    margin-bottom: 10px;
+}
+
+.feature-card p {
+    font-size: 16px;
+}
+
+/* Footer */
+footer {
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(10px);
+    padding: 20px;
+    text-align: center;
+    color: #fff;
+    font-size: 14px;
+}
+
+footer .social-icons a {
+    color: #fff;
+    margin: 0 10px;
+    font-size: 20px;
+    transition: color 0.3s ease, transform 0.3s ease;
+}
+
+footer .social-icons a:hover {
+    color: #fc5c7d;
+    transform: translateY(-3px);
+}
+
+/* Responsive */
+@media(max-width: 800px) {
+    .features {
+        flex-direction: column;
+        align-items: center;
+    }
+}
+</style>
+</head>
+<body>
+
+<header>
+    <h1>Inventory Dashboard</h1>
+    <nav>
+        <button onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+    </nav>
+</header>
+
+<main>
+    <div class="welcome-card">
+        <h2 id="welcomeMessage">Welcome!</h2>
+        <p id="userInfo">Manage your inventory efficiently, track orders, and view analytics.</p>
+    </div>
+
+    <div class="features">
+        <div class="feature-card" onclick="location.href='products.html'">
+            <h3><i class="fas fa-boxes"></i> Products</h3>
+            <p>View and manage all products</p>
+        </div>
+        <div class="feature-card" onclick="location.href='orders.html'">
+            <h3><i class="fas fa-shopping-cart"></i> Orders</h3>
+            <p>Track customer orders</p>
+        </div>
+        <div class="feature-card" onclick="location.href='analytics.html'">
+            <h3><i class="fas fa-chart-line"></i> Analytics</h3>
+            <p>View reports & stats</p>
+        </div>
+    </div>
+</main>
+
+<footer>
+    <p>© 2025 Created by MV</p><br>
+    <div class="social-icons">
+        <a href="https://www.facebook.com/yourprofile" target="_blank"><i class="fab fa-facebook-f"></i></a>
+        <a href="https://twitter.com/yourprofile" target="_blank"><i class="fab fa-twitter"></i></a>
+        <a href="https://www.instagram.com/yourprofile" target="_blank"><i class="fab fa-instagram"></i></a>
+        <a href="https://www.linkedin.com/in/yourprofile" target="_blank"><i class="fab fa-linkedin-in"></i></a>
+        <a href="https://github.com/yourusername" target="_blank"><i class="fab fa-github"></i></a>
+    </div>
+</footer>
+
+<script>
+// Redirect to login if token not found
+if (!localStorage.getItem('token')) {
+    window.location.href = 'login.html';
+}
+
+// Display dynamic username
+const username = localStorage.getItem('username');
+const userInfo = document.getElementById('userInfo');
+
+if (username) {
+    userInfo.textContent = `Logged in as: ${username}`;
+}
+
+// Logout function
+function logout() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('username');
+    window.location.href = 'login.html';
+}
+
+// Display dynamic username
+const username = localStorage.getItem('username');
+const usernameDisplay = document.getElementById('usernameDisplay');
+if (username) {
+    usernameDisplay.textContent = username;
+}
+
+// Logout function
+function logout() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('username');
+    window.location.href = 'login.html';
+}
+
+// Dropdown toggle
+document.getElementById('userBtn').addEventListener('click', () => {
+    document.getElementById('dropdownContent').classList.toggle('show');
+});
+
+// Close dropdown if clicked outside
+window.onclick = function(event) {
+    if (!event.target.matches('.user-btn') && !event.target.closest('.user-btn')) {
+        const dropdowns = document.getElementsByClassName("dropdown-content");
+        for (let i = 0; i < dropdowns.length; i++) {
+            dropdowns[i].classList.remove('show');
+        }
+    }
+}
+
+</script>
+
+</body>
+</html>
