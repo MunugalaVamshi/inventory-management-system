@@ -64,25 +64,6 @@ button:hover { background: #1a5bd8; color: #fff; }
     100% { opacity: 1; transform: scale(1);}
 }
 
-.track-steps {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    margin-top: 20px;
-    flex-wrap: wrap;
-}
-.track-step {
-    padding: 5px 12px;
-    border-radius: 20px;
-    background: #ccc;
-    color: #fff;
-    font-weight: bold;
-    font-size: 14px;
-    transition: all 0.3s ease;
-}
-.track-step.active { background: #2575fc; }
-
-/* Tick mark for confirmation */
 .tick-mark {
     font-size: 60px;
     color: green;
@@ -116,6 +97,7 @@ button:hover { background: #1a5bd8; color: #fff; }
         <h2>Step 3: Enter Order Details</h2>
         <input type="text" id="orderId" placeholder="Order ID" />
         <input type="text" id="customerName" placeholder="Customer Name" />
+        <input type="text" id="place" placeholder="Place" />  <!-- ✅ Added Place Field -->
         <select id="product">
             <option value="">Select Product</option>
         </select>
@@ -156,15 +138,16 @@ function nextStep(current) {
     document.getElementById(`step${current + 1}`).classList.add('active');
 }
 
-// Submit order and store in MySQL
+// Submit order
 async function submitOrder() {
     const orderId = document.getElementById('orderId').value.trim();
     const customerName = document.getElementById('customerName').value.trim();
+    const place = document.getElementById('place').value.trim();  // ✅ Added Place Field
     const product = document.getElementById('product').value.trim();
     const quantity = document.getElementById('quantity').value.trim();
     const paymentMethod = document.getElementById('paymentMethod').value.trim();
 
-    if (!orderId || !customerName || !product || !quantity || !paymentMethod) {
+    if (!orderId || !customerName || !place || !product || !quantity || !paymentMethod) {
         alert("All fields are required!");
         return;
     }
@@ -174,7 +157,7 @@ async function submitOrder() {
         const response = await fetch("http://localhost:5000/api/orders", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ orderId, customerName, product, quantity })
+            body: JSON.stringify({ orderId, customerName, place, product, quantity, paymentMethod })
         });
 
         const result = await response.json();
@@ -192,7 +175,7 @@ async function submitOrder() {
         const estDateStr = estDelivery.toLocaleDateString();
 
         document.getElementById('thankYouMsg').textContent =
-            `Thank you, ${customerName}! Your order for "${product}" has been placed.`;
+            `Thank you, ${customerName} from ${place}! Your order for "${product}" has been placed.`;
 
         const deliveryDiv = document.getElementById('estimatedDelivery');
         deliveryDiv.textContent = `Estimated Delivery: ${estDateStr}`;
@@ -202,6 +185,7 @@ async function submitOrder() {
         // Clear form
         document.getElementById('orderId').value = '';
         document.getElementById('customerName').value = '';
+        document.getElementById('place').value = '';
         document.getElementById('product').value = '';
         document.getElementById('quantity').value = '';
 
