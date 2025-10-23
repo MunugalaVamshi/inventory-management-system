@@ -8,19 +8,22 @@ exports.getAllOrders = (req, res) => {
 };
 
 exports.addOrder = (req, res) => {
-    const { orderId, customerName, product, quantity } = req.body;
-    if (!orderId || !customerName || !product || !quantity) {
+    const { orderId, customerName, place, product, quantity, paymentMethod } = req.body;
+
+    // Validate all required fields
+    if (!orderId || !customerName || !place || !product || !quantity || !paymentMethod) {
         return res.status(400).json({ error: "All fields are required" });
     }
 
-    db.query(
-        "INSERT INTO orders (orderId, customerName, product, quantity) VALUES (?, ?, ?, ?)",
-        [orderId, customerName, product, quantity],
-        (err, results) => {
-            if (err) return res.status(500).json({ error: err });
-            res.json({ message: "Order added successfully", orderId });
-        }
-    );
+    const sql = `
+        INSERT INTO orders (orderId, customerName, place, product, quantity, paymentMethod)
+        VALUES (?, ?, ?, ?, ?, ?)
+    `;
+
+    db.query(sql, [orderId, customerName, place, product, quantity, paymentMethod], (err, results) => {
+        if (err) return res.status(500).json({ error: err });
+        res.json({ message: "Order added successfully", orderId });
+    });
 };
 
 exports.deleteOrder = (req, res) => {
